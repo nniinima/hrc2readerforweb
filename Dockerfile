@@ -19,3 +19,4 @@ ENV PATH="$PATH:/usr/bin/tesseract"
 COPY . .
 
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+CMD [ "python3", "app.py" ]
