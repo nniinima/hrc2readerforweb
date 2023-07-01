@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HCR2 Reader</title>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #processing-message, .cogs {
+            display: none;
+        }
+
+        .is-processing #processing-message {
+            display: block;
+        }
+
+        .cogs {
+            display: none; /* Initially hidden */
+            flex-direction: row;
+            justify-content: start;
+            align-items: flex-start;
+        }
+
+        .cog {
+            width: 300px;
+            height: 300px;
+            animation-name: spin;
+            animation-timing-function: steps(10);
+            animation-iteration-count: infinite;
+        }
+
+        #cog2 {
+            transform: scaleX(-1); /* Flip horizontally */
+            margin-left: -70px; /* Adjust as needed */
+            margin-top: 20px; /* Adjust as needed */
+        }
+    </style>
+</head>
+<body>
+    <h1>HCR2 Reader</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form" onsubmit="disableButton()">
+        <input type="file" name="file" multiple>
+        <input type="submit" value="Upload" id="upload-button">
+        <p id="processing-message">Images are being processed, please wait...</p>
+        <div class="cogs">
+            <img src="{{ url_for('static', filename='images/cog.svg') }}" class="cog" id="cog1">
+        </div>
+    </form>
+
+    <script>
+        function disableButton() {
+            var uploadButton = document.getElementById("upload-button");
+            uploadButton.disabled = true;
+            uploadButton.value = "Processing...";
+            document.getElementById("upload-form").classList.add("is-processing");
+
+            var cog1 = document.getElementById("cog1");
+            var cog2 = document.getElementById("cog2");
+
+            document.querySelector(".cogs").style.display = "flex"; /* Display cogs */
+
+            setInterval(function() {
+                cog1.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                cog2.style.animationDuration = (Math.random() * 2 + 1) + 's';
+            }, 500);
+        }
+    </script>
+</body>
+</html>

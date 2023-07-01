@@ -1,0 +1,12 @@
+Flask
+pandas
+Pillow
+matplotlib
+pytesseract
+scikit-image
+numpy
+scipy
+cycler
+kiwisolver
+pyparsing
+python-dateutil
