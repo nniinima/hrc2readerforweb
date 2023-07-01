@@ -24,69 +24,84 @@ def upload():
 
         processing = True  # Set the processing flag to indicate processing has started
 
-        if 'file' not in request.files:
-            processing = False  # Set the processing flag to indicate processing has finished
-            return 'No file part in the request.', 400
+        try:
+            if 'file' not in request.files:
+                processing = False  # Set the processing flag to indicate processing has finished
+                return 'No file part in the request.', 400
 
-        files = request.files.getlist('file')
+            files = request.files.getlist('file')
 
-        df = pd.DataFrame()
+            df = pd.DataFrame()
 
-        for file in files:
-            file_bytes = file.read()  # Read the file as bytes
+            for file in files:
+                file_bytes = file.read()  # Read the file as bytes
 
-            # Process the image from the bytes using BytesIO
-            image = BytesIO(file_bytes)
+                # Process the image from the bytes using BytesIO
+                image = BytesIO(file_bytes)
 
-            processed_df = process_images(image)  # Process the image directly from memory
-            df = pd.concat([df, processed_df], ignore_index=True)
+                processed_df = process_images(image)  # Process the image directly from memory
+                df = pd.concat([df, processed_df], ignore_index=True)
 
-        if not df.empty:
-            replacements = {
-                's': '5',
-                'S': '5',
-                'g': '9',
-                'H': '4',
-                'i': '1',
-                'I': '1',
-                'l': '1',
-                'j': '1',
-                'z': '2',
-                'Z': '2'
-            }
+            if not df.empty:
+                replacements = {
+                    's': '5',
+                    'S': '5',
+                    'g': '9',
+                    'H': '4',
+                    'i': '1',
+                    'I': '1',
+                    'l': '1',
+                    'j': '1',
+                    'z': '2',
+                    'Z': '2'
+                }
 
-            for character, replacement in replacements.items():
-                df['points'] = df['points'].str.replace(character, replacement, regex=False)
+                for character, replacement in replacements.items():
+                    df['points'] = df['points'].str.replace(character, replacement, regex=False)
 
-            df['points'] = pd.to_numeric(df['points'], errors='coerce')
-            df['points'].fillna(0, inplace=True)
+                df['points'] = pd.to_numeric(df['points'], errors='coerce')
+                df['points'].fillna(0, inplace=True)
 
-            df['expected_position'] = df.index + 1
+                df['expected_position'] = df.index + 1
 
-            mean_score = df.loc[df['points'] > 4000, 'points'].mean()
+                mean_score = df.loc[df['points'] > 4000, 'points'].mean()
 
-            df = df.sort_values(by=['points'], ascending=False)
+                df = df.sort_values(by=['points'], ascending=False)
 
-            df['expected_position'] = df.index + 1
+                df['expected_position'] = df.index + 1
 
-            condition_high_score = (df['points'] > 2 * mean_score)
-            condition_wrong_position = (abs(df.reset_index().index + 1 - df['expected_position']) > 1)
+                condition_high_score = (df['points'] > 2 * mean_score)
+                condition_wrong_position = (abs(df.reset_index().index + 1 - df['expected_position']) > 1)
 
-            df.loc[condition_high_score & condition_wrong_position, 'points'] = 333
+                df.loc[condition_high_score & condition_wrong_position, 'points'] = 333
 
-            df['position'] = range(1, len(df) + 1)
-            score_mapping = get_score_mapping()
-            df['score'] = df['position'].map(score_mapping).fillna(0)
+                df['position'] = range(1, len(df) + 1)
+                score_mapping = get_score_mapping()
+                df['score'] = df['position'].map(score_mapping).fillna(0)
 
-            df = custom_sort(df)
+                df = custom_sort(df)
 
-            df.to_csv('temp.csv', index=False)
+                df.to_csv('temp.csv', index=False)
 
-        # After processing the files, reset the processing flag
-        processing = False
+            # After processing the files, reset the processing flag
+            processing = False
 
-        # Redirect to the download page
-        return redirect(url_for('download'))
+            # Redirect to the download page
+            return redirect(url_for('download'))
+        
+        except Exception as e:
+            # Handle the exception here (e.g., log the error, display an error message)
+            # ...
+
+            # Reset the processing flag in case of an error
+            processing = False
+
+            # Redirect to an error page or display an error message
+            return render_template('error.html', error=str(e))
+        
+        finally:
+            # Ensure the processing flag is always reset
+            processing = False
 
 @app.route('/download', methods=['GET'])
 def download():
